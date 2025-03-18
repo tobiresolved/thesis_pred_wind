@@ -11,15 +11,15 @@ from helpers.constants import dataframe_metadata
 
 class FormatDataframe:
 
-    def __init__(self, event_id: int):
+    def __init__(self, event_id: int, sensor_dict: dict):
         self.logger = Helper.get_logger("Format Dataframe")
         self.event_id = event_id
-        self.sensor_metadata = Sensor.all_as_dict(event_id=event_id)
+
 
     def process(self, pdf_report: bool):
         df = self.read_dataset()
         df = self.update_column_names(df=df)
-        self.check_right_column_names(df=df)
+        #self.check_right_column_names(df=df)
         df = self.format_dataframe(df=df)
         if pdf_report:
             self.create_pdf_report(df=df)

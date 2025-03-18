@@ -1,0 +1,7 @@
+wind_speed_235_avg has negative values
+wind_speed_236_avg has negative values
+wind_speed_236_avg has negative values somewhere at 15k
+sensor_7_avg (ambient) has 0 values and sometimes harsh drops
+sensor_41_avg (outside) has 0 values sometimes
+sensor_65_avg (hub) has 0 values and strange drops
+sensor_177_avg (outside) has 0 values sometimes

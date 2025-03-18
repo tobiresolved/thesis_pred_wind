@@ -1,0 +1,30 @@
+# Power
+power_2_avg: ABB-LS Active Power
+power_17_avg: Active power converter
+
+reactive_power_119_avg: ABB-LS Reactive Power
+reactive_power_120_avg: Reactive power converter
+
+
+# External
+wind_speed_235_avg: Wind speed 1
+wind_speed_236_avg: Wind speed 1+2
+wind_speed_237_avg: Wind speed 2
+sensor_41_avg: Nacelle outside temperature
+sensor_177_avg: Outside temperature
+sensor_40_avg: Nacelle external air pressure
+sensor_123_avg: Relative wind direction 1+2
+sensor_124_avg: Relative wind direction Yaw
+
+# Mechanical
+sensor_144_avg: Rotor speed 1
+sensor_145_avg: Rotor speed 2
+sensor_1_avg: Generator acceleration
+
+# Hydraulic
+sensor_22_avg: Current hydraulic tank heating
+sensor_74_avg: Hydraulic oil tank level
+
+
+sensor_81_avg:  Motor current hydraulic pump A
+sensor_82_avg:  Motor current hydraulic pump B

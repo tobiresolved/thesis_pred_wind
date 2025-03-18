@@ -149,6 +149,32 @@ class DataPlotter:
         for sensor_x, sensor_y, sensor_z in sensor_mapping:
             self.plot_sensor_correlation_3d(df, sensor_x, sensor_y, sensor_z)
 
+    def plot_all_temperature_sensors(self, df, temp_sensors, time_col='timestamp'):
+        """
+        Plots each temperature sensor listed in 'temp_sensors' on a single figure.
+
+        Args:
+            df (pd.DataFrame): Your data, with a time column and sensor columns.
+            temp_sensors (list[str]): List of column names for the temperature sensors.
+            time_col (str): Name of the column representing time or the index if not
+                            using a separate time column.
+        """
+        from preprocessing.wfc.const import TEMPERATURE_SENSORS
+        temp_sensors = TEMPERATURE_SENSORS
+        plt.figure(figsize=(12, 8))  # Adjust size as you like
+
+        # Plot each temperature column
+        for sensor_col in temp_sensors:
+            plt.plot(df[time_col], df[sensor_col], label=sensor_col)
+
+        # Configure labels, legend, and title
+        plt.xlabel("Time")
+        plt.ylabel("Temperature (°C)")  # or appropriate unit
+        plt.title("Temperature Sensors Over Time")
+        plt.legend()  # Show legend with sensor names
+
+        plt.show()
+
     def plot_sensor_correlation_status_type(self, df: pd.DataFrame, sensor_x: str, sensor_y: str) -> None:
         plt.figure(figsize=(15, 10))
 
@@ -238,37 +264,100 @@ class DataPlotter:
             plt.grid(True)
             plt.show()
 
-    def plot_timeseries(
-            self,
-            sensor_series: pd.Series,
-            sensor: Sensor
-    ) -> None:
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import os
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages
+    import tempfile
+    from PyPDF2 import PdfMerger, PdfReader
 
-        plt.figure(figsize=(15, 6))
+    def plot_timeseries_with_status(
+                self,
+                df: pd.DataFrame,
+                outside_temp_col: str,
+                wind_speed_col: str,
+                rotor_rpm_col: str,
+                status_col: str,
+                sensor_col: str
+        ) -> None:
+            """
+            Creates a 3-subplot figure:
 
-        title = f"{self.event.event_label.upper()} - {self.event.event_description}" or f"Event {self.event.event_id}"
-        plt.title(title)
+              1) Top subplot:
+                 - Plots 'outside_temp_col', 'wind_speed_col', and 'rotor_rpm_col' together.
+              2) Middle subplot:
+                 - Plots 'status_col' (values in 0..5) as a horizontal line that changes color
+                   whenever the status changes.
+              3) Bottom subplot:
+                 - Plots 'sensor_col' over time.
+            """
 
-        # 1) Plot the entire time series in blue
-        plt.plot(sensor_series, label="Sensor Data", color="blue", linewidth=0.5)
+            # Create a figure with 3 subplots sharing the same X-axis
+            fig, axes = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(12, 8))
+            ax_top, ax_status, ax_bottom = axes
 
-        # 2) Highlight the event window in red
-        start_idx = self.event.event_start_id
-        end_idx = self.event.event_end_id
+            # 1) TOP SUBPLOT: outside_temperature, wind_speed, rotor_rpm
+            ax_top.plot(
+                df.index,
+                df[outside_temp_col],
+                label=self.sensor_metadata[outside_temp_col].description,
+                linewidth=0.8,
+                linestyle='--'
+            )
+            ax_top.plot(
+                df.index,
+                df[wind_speed_col],
+                label=self.sensor_metadata[wind_speed_col].description,
+                linewidth=0.8,
+                linestyle='--'
+            )
+            ax_top.plot(
+                df.index,
+                df[rotor_rpm_col],
+                label=self.sensor_metadata[rotor_rpm_col].description,
+                linewidth=0.8,
+                linestyle='--'
+            )
 
-        # We assume start_idx and end_idx are valid integer positions
-        # within the series. We slice using .iloc
-        plt.plot(
-            sensor_series.iloc[start_idx: end_idx + 1],
-            label="Event Window",
-            color="red",
-            linewidth=0.5
-        )
+            ax_top.set_ylabel(
+                f"{self.sensor_metadata[outside_temp_col].unit} | {self.sensor_metadata[wind_speed_col].unit} | {self.sensor_metadata[rotor_rpm_col].unit}"
+            )
+            ax_top.set_title(f"{str(self.event)}")
+            ax_top.legend()
 
-        # Add labels and legend
-        plt.xlabel(f"Plot of {sensor.name} {sensor.description.upper()} over time")
-        plt.ylabel(f"{sensor.description} - {sensor.stat_type} - {sensor.unit}")
-        plt.legend()
+            # 2) MIDDLE SUBPLOT: status_col as a colored horizontal line
+            ax_status.set_title("Status Over Time")
+            ax_status.set_ylabel("Status ID")
 
-        # Display the plot
-        plt.show()
+            # (a) Assign a color to each possible status
+            status_colors = {
+                0: "green",
+                1: "red"
+            }
+
+            # (b) Create a helper column that identifies "segments" where status remains constant
+            #     We'll do a cumsum over points where the status changes.
+            temp_df = df.copy()
+            temp_df["status_segment"] = (temp_df[status_col] != temp_df[status_col].shift()).cumsum()
+
+            # (c) Plot each segment in a single color
+            for _, group in temp_df.groupby("status_segment"):
+                seg_status = group[status_col].iloc[0]
+                color = status_colors.get(seg_status, "gray")  # default if unexpected
+                ax_status.plot(group.index, group[status_col], color=color, linewidth=0.5)
+
+            # Make sure the status axis shows 0..5 nicely
+            ax_status.set_ylim(-0.5, 5.5)
+
+            # 3) BOTTOM SUBPLOT: main time series
+            ax_bottom.plot(df.index, df[sensor_col], label=self.sensor_metadata[sensor_col].unit, color="blue", linewidth=0.8)
+            ax_bottom.set_title(f"{self.sensor_metadata[sensor_col].description} Statistic: {self.sensor_metadata[sensor_col].stat_type}")
+            ax_bottom.set_ylabel(f"{self.sensor_metadata[sensor_col].unit}")
+
+            # Adjust layout so titles/labels don't overlap
+            plt.tight_layout()
+            plt.show()
+
+
+

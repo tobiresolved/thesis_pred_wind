@@ -1,0 +1,9 @@
+sensor_49_avg: Hydraulic pressure azimuth circuit A
+sensor_50_avg: Hydraulic pressure azimuth circuit B
+sensor_51_avg: Hydraulic pressure azimuth memory A
+sensor_52_avg: Hydraulic pressure azimuth memory B
+sensor_53_avg: Hydraulic pressure locking memory
+sensor_54_avg: Hydraulic pressure rotor brake B
+sensor_55_avg: Hydraulic pressure rotor brake A
+sensor_178_avg: Hydraulic oil tank temperature 1
+sensor_179_avg: Hydraulic oil tank temperature 2
